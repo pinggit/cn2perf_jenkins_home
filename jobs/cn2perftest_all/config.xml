@@ -1,0 +1,86 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>task</name>
+          <description>what to do:
+&quot;deploy&quot;: deploy the all necessary components only
+&quot;ixia&quot;: run ixia to send traffic (after &quot;deploy&quot;)
+&quot;all&quot;: deploy, run tester, gather result, compare, and upload</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>deploy</string>
+              <string>ixia</string>
+              <string>all</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>mode</name>
+          <description>which vrouter(dpdk or kernel) to run the test</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>dpdk</string>
+              <string>kernel</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>nic</name>
+          <description>dpdk nic card selection</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>nic_82599</string>
+              <string>nic_x710</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>run_times</name>
+          <description>how many times to run the tester to repeat the same test.
+this is for task &quot;ixia&quot; or &quot;all&quot; only.</description>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>release</name>
+          <description>which release we are testing
+current this is only used when uploading result to snp service</description>
+          <defaultValue>master_6803</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>###setup atom envs###                                                                    
+#echo $WORKSPACE                                                                         
+CN2=$WORKSPACE/atom/naas/test/Libs/OpenApi/cn2                                                
+ixiamods=$WORKSPACE/atom/naas/test/Tools/Ixia/RestApi/Python/Modules                          
+export PYTHONPATH=$WORKSPACE/atom:$CN2:$ixiamods                                              
+export CN2_TESTBED_CONF=$WORKSPACE/perftest_config/perf_test_config_extended_example.yaml
+cat $CN2_TESTBED_CONF
+
+###run perf scripts###                                                                   
+#cp -pr /var/jenkins_home/perftest_config/ $WORKSPACE/                                   
+python3 $WORKSPACE/atom/naas/test/Tests/Performance/test_cn2_performance.py \
+    --mode=$mode --nic $nic --task $task --run_times=$run_times</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
